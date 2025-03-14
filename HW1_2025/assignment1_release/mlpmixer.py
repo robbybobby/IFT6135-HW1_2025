@@ -17,7 +17,7 @@ class PatchEmbed(nn.Module):
         self.num_patches = self.grid_size * self.grid_size
         
         # Uncomment this line and replace ? with correct values
-        #self.proj = nn.Conv2d(?, ?, kernel_size=?, stride=?)
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
 
     def forward(self, x):
         """
@@ -76,7 +76,9 @@ class MixerBlock(nn.Module):
         self.mlp_channels = Mlp(dim, channels_dim, act_layer=act_layer, drop=drop)
 
     def forward(self, x):
-        raise NotImplementedError
+        x += self.mlp_tokens(self.norm1(x).transpose(1, 2)).transpose(1, 2)
+        x += self.mlp_channels(self.norm2(x))
+        return x
     
 
 class MLPMixer(nn.Module):
@@ -117,10 +119,29 @@ class MLPMixer(nn.Module):
         # step 3 go through layer norm
         # step 4 Global averaging spatially
         # Classification
-        raise NotImplementedError
+        patches = self.patchemb(images)
+        mb_output = self.blocks(patches)
+        norm_layer_out = self.norm(mb_output)
+        averaging_output = norm_layer_out.mean(dim=1)
+        output_logits = self.head(averaging_output)
+        return output_logits
     
     def visualize(self, logdir):
         """ Visualize the token mixer layer 
         in the desired directory """
-        raise NotImplementedError
+        os.makedirs(logdir, exist_ok=True)
+        num_blocks = len(self.blocks)
+        
+        for i, block in enumerate(self.blocks):
+            token_mlp_weights = block.mlp_tokens.fc1.weight.data.cpu().numpy()
+            
+            plt.figure(figsize=(10, 5))
+            plt.imshow(token_mlp_weights, cmap='coolwarm', aspect='auto')
+            plt.colorbar()
+            plt.title(f"Token Mixing Weights - Block {i}")
+            plt.xlabel("Input Tokens")
+            plt.ylabel("Hidden Layer Neurons")
+            
+            plt.savefig(os.path.join(logdir, f"token_mixer_block_{i}.png"))
+            plt.close()
  
