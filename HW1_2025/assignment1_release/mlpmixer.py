@@ -129,7 +129,7 @@ class MLPMixer(nn.Module):
     def visualize(self, logdir):
         """ Visualize the token mixer layer 
         in the desired directory """
-        os.makedirs(logdir, exist_ok=True)
+        """os.makedirs(logdir, exist_ok=True)
         num_blocks = len(self.blocks)
         
         for i, block in enumerate(self.blocks):
@@ -143,5 +143,6 @@ class MLPMixer(nn.Module):
             plt.ylabel("Hidden Layer Neurons")
             
             plt.savefig(os.path.join(logdir, f"token_mixer_block_{i}.png"))
-            plt.close()
+            plt.close()"""
+        raise NotImplemented
  

@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import json
+import torch.nn as nn
 
 
 def generate_plots(list_of_dirs, legend_names, save_path):
@@ -18,7 +19,14 @@ def generate_plots(list_of_dirs, legend_names, save_path):
         assert os.path.exists(os.path.join(logdir, 'results.json')), f"No json file in {logdir}"
         with open(json_path, 'r') as f:
             data[name] = json.load(f)
-    
+
+    titles = {
+    'train_accs': 'Training Accuracy over epochs',
+    'valid_accs': 'Validation Accuracy over epochs',
+    'train_losses': 'Training Loss over epochs',
+    'valid_losses': 'Validation Loss over epochs'
+}
+
     for yaxis in ['train_accs', 'valid_accs', 'train_losses', 'valid_losses']:
         fig, ax = plt.subplots()
         for name in data:
@@ -26,6 +34,7 @@ def generate_plots(list_of_dirs, legend_names, save_path):
         ax.legend()
         ax.set_xlabel('epochs')
         ax.set_ylabel(yaxis.replace('_', ' '))
+        ax.set_title(f"{titles[yaxis]}")
         fig.savefig(os.path.join(save_path, f'{yaxis}.png'))
         
 
@@ -61,11 +70,15 @@ def cross_entropy_loss(logits: torch.Tensor, labels: torch.Tensor):
     :param labels: [batch_size]
     :return loss 
     """
-    exponentiated_logits = torch.exp(logits)
-    probabilities = exponentiated_logits / torch.sum(exponentiated_logits, dim=1, keepdim=True)
-    labels_probabilities = probabilities[torch.arange(labels.shape[0]), labels]
-    negative_log_loss = -torch.log(labels_probabilities+1e-10)
-    return negative_log_loss.mean()
+    #Appliquer softmax pour obtenir les probabilités
+    probs = torch.exp(logits) / torch.exp(logits).sum(dim=1, keepdim=True)
+    # Extraire les probabilités associées aux labels corrects
+    correct_probs = probs[torch.arange(logits.shape[0]), labels]
+    # Calculer la perte d'entropie croisée
+    loss = -torch.log(correct_probs + 1e-12).mean()
+
+    
+    return loss
 
 def compute_accuracy(logits: torch.Tensor, labels: torch.Tensor):
     """ Compute the accuracy of the batch """

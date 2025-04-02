@@ -89,7 +89,7 @@ class ResNet18(nn.Module):
 
     def _visualize_filters(self, layer, name, logdir):
         """ Helper function to visualize filters of a specific layer """
-        filters = layer.weight.data.clone()  # Extract filters from the layer
+        """filters = layer.weight.data.clone()  # Extract filters from the layer
         filters = filters - filters.min()  # Normalize to [0, 1]
         filters = filters / filters.max()
 
@@ -118,4 +118,5 @@ class ResNet18(nn.Module):
         plt.savefig(os.path.join(logdir, f'{name}.png'))  # Save the image in the logdir
         plt.close()
 
-        print(f"Saved filter visualization at {logdir}/{name}.png")
+        print(f"Saved filter visualization at {logdir}/{name}.png")"""
+        raise NotImplemented

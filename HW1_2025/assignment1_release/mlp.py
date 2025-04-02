@@ -82,8 +82,8 @@ class MLP(torch.nn.Module):
         elif activation == 'relu':
             return torch.maximum(inputs, torch.zeros_like(inputs))
         elif activation == 'sigmoid':
-            inputs_with_limit = torch.clamp(inputs, min=-100.0, max=100.0)
-            return 1 / (1 + torch.exp(-inputs_with_limit))
+            clamped_inputs = torch.clamp(inputs, min=-50, max=50)
+            return 1 / (1 + torch.exp(-clamped_inputs))
         else:
             raise ValueError(f"{activation} is not supported as an activation function.")
         
